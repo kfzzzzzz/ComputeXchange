@@ -1,4 +1,6 @@
 import 'package:compute_xchange/ScaffoldRoute.dart';
+import 'package:compute_xchange/textToImage/bloc/text_to_image_bloc.dart';
+import 'package:compute_xchange/textToImage/textToImagePage.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
       //   // is not restarted.
       //   primarySwatch: Colors.green,
       // ),
-      home: ScaffoldRoute(),
+      home: textToImagePage(),
     );
   }
 }
