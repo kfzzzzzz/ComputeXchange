@@ -35,7 +35,7 @@ class _TextToImagePage extends State<textToImagePage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text("StableDiffusionDemo"),
+        title: const Text("小小漫画家"),
       ),
       body: Stack(alignment: Alignment.center, children: [
         Column(
@@ -114,7 +114,8 @@ class _TextToImageBody extends State<textToImageBody> {
 
 Future<void> recordTap(Record record, TextToImageBloc textToImageBloc) async {
   textToImageBloc.add(TextToImageLoadingEvent());
-  textToImageBloc.add(TextToImageLoadEvent("duck"));
+  textToImageBloc.add(TextToImageLoadEvent(
+      "yellow duck, swimming, two ducks, find, little frog"));
 
   // bool isRecording = await record.isRecording();
   // if (isRecording) {
