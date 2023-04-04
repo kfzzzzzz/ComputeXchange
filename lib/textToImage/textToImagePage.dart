@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:record/record.dart';
 
+import '../httpRequest/GPTRequest.dart';
 import 'bloc/text_to_image_bloc.dart';
 
 class textToImagePage extends StatefulWidget {
@@ -114,8 +115,8 @@ class _TextToImageBody extends State<textToImageBody> {
 
 Future<void> recordTap(Record record, TextToImageBloc textToImageBloc) async {
   textToImageBloc.add(TextToImageLoadingEvent());
-  textToImageBloc.add(TextToImageLoadEvent(
-      "yellow duck, swimming, two ducks, find, little frog"));
+  final prompt = await GPTRequest("小鸭子出生在春天，他喜欢和妈妈一起在池塘里游泳。");
+  textToImageBloc.add(TextToImageLoadEvent(prompt));
 
   // bool isRecording = await record.isRecording();
   // if (isRecording) {
