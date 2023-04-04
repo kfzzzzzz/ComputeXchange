@@ -8,3 +8,5 @@ class TextToImageLoadEvent extends TextToImageEvent {
 
   TextToImageLoadEvent(this.description);
 }
+
+class TextToImageLoadingEvent extends TextToImageEvent {}

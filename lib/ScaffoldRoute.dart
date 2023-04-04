@@ -1,5 +1,7 @@
 import 'package:compute_xchange/HomeDrawer.dart';
+import 'package:compute_xchange/record/record.dart';
 import 'package:flutter/material.dart';
+import 'package:record/record.dart';
 
 class ScaffoldRoute extends StatefulWidget {
   @override
@@ -8,6 +10,8 @@ class ScaffoldRoute extends StatefulWidget {
 
 class _ScaffoldRouteState extends State<ScaffoldRoute> {
   int _selectedIndex = 1;
+  final record = Record();
+  final path = 'wav/myrecord';
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +42,12 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
   }
 
   void _onItemTapped(int index) {
+    if (index == 1) {
+      startRecord(record);
+    }
+    if (index == 2) {
+      stopRecord(record);
+    }
     setState(() {
       _selectedIndex = index;
     });

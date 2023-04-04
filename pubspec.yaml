@@ -41,6 +41,8 @@ dependencies:
   crypto: ^3.0.2
   uuid: ^3.0.7
   record: ^4.4.4
+  ffmpeg_kit_flutter: ^4.5.0
+  path_provider: ^2.0.14
 
 dev_dependencies:
   flutter_test:
@@ -66,7 +68,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-   - wav/testwav.wav
+   - wav/
+   - images/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

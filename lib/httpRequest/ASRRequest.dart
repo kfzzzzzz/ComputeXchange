@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
@@ -8,8 +9,8 @@ import 'package:path/path.dart' as path;
 import 'package:flutter/services.dart' show rootBundle;
 
 const demo = 'https://openapi.youdao.com/asrapi';
-const demodemo = '3b79db3846bd3ae7';
-const demodemodemo = 'OBQrU64Knaxz4zgWzdkFBN6LRSDwAIif';
+const APP_KEY = '';
+const APP_SECRET = '';
 
 String truncate(String q) {
   if (q == null) {
@@ -40,45 +41,33 @@ String encrypt(String signStr) {
   return hash.toString();
 }
 
-Future<http.Response> doRequest(Map<String, String> data) {
+Future<Response> doRequest(Map<String, String> data) async {
   final headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-  return http.post(Uri.parse(demo), body: data, headers: headers);
+  final dio = Dio();
+  final response =
+      await dio.post(demo, data: data, options: Options(headers: headers));
+  return response;
 }
 
-Future<void> ASRRequest() async {
-  final file = await rootBundle.load('wav/testwav.wav');
+Future<List> ASRRequest(String path) async {
+  final file = await rootBundle.load(path);
   final bytes = file.buffer.asUint8List();
   final q = base64.encode(bytes);
 
-  // final file = File("C:/Users/31065/Desktop/testwav.wav");
-  // // final fileExtension = path.extension(file);
-  // // if (fileExtension != '.wav') {s
-  // //   print('不支持的音频类型');
-  // //   return;
-  // // }
-  // final bytes = await file.readAsBytes();
-  // final q = base64.encode(bytes);
-
   const langType = 'zh-CHS';
 
-  final curtime =
-      (DateTime.now().millisecondsSinceEpoch / 1000).floor().toString();
-  print(curtime);
-  // const hours8InMilliseconds = 8 * 60 * 60;
-  //final curTime = cur - hours8InMilliseconds;
-  // print(curTime);
+  final currTime =
+      (DateTime.now().millisecondsSinceEpoch / 1000).truncate().toString();
+
   final salt = const Uuid().v1();
-  String signStr = demodemo + truncate(q) + salt + curtime + demodemodemo;
+  String signStr = APP_KEY + truncate(q) + salt + currTime + APP_SECRET;
   String sign = encodeSHA256(signStr);
-  print(signStr);
-  print(sign);
-  // final signStr = '$demodemo${truncate(q)}$salt$curtime$demodemodemo';
-  // final sign = encrypt(signStr);
 
   final data = <String, String>{
-    'appKey': demodemo,
+    'appKey': APP_KEY,
     'q': q,
     'salt': salt,
+    'curtime': currTime,
     'sign': sign,
     'signType': 'v2',
     'langType': langType,
@@ -89,7 +78,6 @@ Future<void> ASRRequest() async {
   };
 
   final response = await doRequest(data);
-  final serverTime = response.headers['date'];
-  print('服务器时间：$serverTime');
-  print(response.body);
+  final Result = response.data['result'] as List<dynamic>;
+  return Result;
 }

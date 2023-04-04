@@ -9,10 +9,12 @@ part 'text_to_image_state.dart';
 
 class TextToImageBloc extends Bloc<TextToImageEvent, TextToImageState> {
   TextToImageBloc() : super(TextToImageInitial()) {
-    on<TextToImageLoadEvent>((event, emit) async {
-      ASRRequest();
-      Future<Image> resultList = sendPostRequest(event.description);
+    on<TextToImageLoadingEvent>((event, emit) async {
       emit(TextToImageLoading());
+    });
+
+    on<TextToImageLoadEvent>((event, emit) async {
+      Future<Image> resultList = sendPostRequest(event.description);
       await resultList.then((Image result) {
         emit(TextToImageSuccess(result));
       }).onError((error, stackTrace) {
