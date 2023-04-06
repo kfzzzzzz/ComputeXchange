@@ -1,12 +1,14 @@
 import 'package:compute_xchange/httpRequest/ASRRequest.dart';
+import 'package:compute_xchange/httpRequest/GPTRequest.dart';
 import 'package:compute_xchange/record/record.dart';
+import 'package:compute_xchange/textToImage/bloc/record_lottie_bloc/bloc/record_lottie_bloc.dart';
 import 'package:compute_xchange/utils/error_page.dart';
 import 'package:compute_xchange/utils/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:record/record.dart';
+import 'package:lottie/lottie.dart';
 
-import '../httpRequest/GPTRequest.dart';
 import 'bloc/text_to_image_bloc.dart';
 
 class textToImagePage extends StatefulWidget {
@@ -17,12 +19,16 @@ class textToImagePage extends StatefulWidget {
 class _TextToImagePage extends State<textToImagePage> {
   TextEditingController _descriptionController = TextEditingController();
   late final TextToImageBloc _textToImageBloc;
+  late final RecordLottieBloc _recordLottieBloc;
   final record = Record();
+  bool isRecording = false;
+  String animationAssetPath = 'images/asr_recording.json';
 
   @override
   void initState() {
     super.initState();
     _textToImageBloc = TextToImageBloc();
+    _recordLottieBloc = RecordLottieBloc();
   }
 
   @override
@@ -37,41 +43,69 @@ class _TextToImagePage extends State<textToImagePage> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text("小小漫画家"),
+        backgroundColor: Colors.pink, // 设置背景颜色为透明
+        elevation: 0, // 移除AppBar的阴影效果
       ),
       body: Stack(alignment: Alignment.center, children: [
+        // 背景图
+        Positioned.fill(
+          child: Image.asset(
+            "images/background.png",
+            fit: BoxFit.cover,
+          ),
+        ),
         Column(
           children: [
-            // TextField(
-            //   autofocus: true,
-            //   controller: _descriptionController,
-            //   decoration: InputDecoration(
-            //     suffixIcon: IconButton(
-            //       icon: Icon(Icons.send),
-            //       onPressed: () {
-            //         _textToImageBloc.add(TextToImageLoadEvent(
-            //           _descriptionController.text,
-            //         ));
-            //       },
-            //     ),
-            //   ),
-            // ),
             textToImageBody(textToImageBloc: _textToImageBloc),
           ],
         ),
         Positioned(
             bottom: 50,
             child: GestureDetector(
-              onTap: () {
-                recordTap(record, _textToImageBloc);
-              },
-              child: const Image(
-                image: AssetImage("images/recordIcon.png"),
-                width: 80.0,
-                height: 80.0,
-              ),
-            ))
+                onTap: () {
+                  recordTap(record, _textToImageBloc, _recordLottieBloc);
+                },
+                child: BlocProvider(
+                    create: (context) => _recordLottieBloc,
+                    child: BlocBuilder<RecordLottieBloc, RecordLottieState>(
+                        builder: (context, state) {
+                      if (state is RecordLottiePlaying) {
+                        return Lottie.asset(
+                          animationAssetPath,
+                          width: 250.0,
+                          height: 80.0,
+                          repeat: true,
+                          animate: true,
+                        );
+                      } else {
+                        return const Image(
+                          image: AssetImage("images/recordIcon.png"),
+                          width: 80.0,
+                          height: 80.0,
+                        );
+                      }
+                    }))))
       ]),
     );
+  }
+
+  Future<void> recordTap(Record record, TextToImageBloc textToImageBloc,
+      RecordLottieBloc recordLottieBloc) async {
+    bool isRecording = await record.isRecording();
+    if (isRecording) {
+      recordLottieBloc.add(RecordLottieStopEvent());
+      textToImageBloc.add(TextToImageLoadingEvent());
+      final path = await stopRecord(record);
+      await Future.delayed(const Duration(seconds: 1));
+      final result = await ASRRequest(path);
+      final prompt = result.first as String;
+      final inputprompt = await GPTRequest(prompt);
+      textToImageBloc.add(TextToImageLoadEvent(inputprompt));
+    } else {
+      isRecording = true;
+      recordLottieBloc.add(RecordLottiePlayEvent());
+      startRecord(record);
+    }
   }
 }
 
@@ -111,22 +145,4 @@ class _TextToImageBody extends State<textToImageBody> {
           )),
     );
   }
-}
-
-Future<void> recordTap(Record record, TextToImageBloc textToImageBloc) async {
-  textToImageBloc.add(TextToImageLoadingEvent());
-  final prompt = await GPTRequest("小鸭子出生在春天，他喜欢和妈妈一起在池塘里游泳。");
-  textToImageBloc.add(TextToImageLoadEvent(prompt));
-
-  // bool isRecording = await record.isRecording();
-  // if (isRecording) {
-  //   textToImageBloc.add(TextToImageLoadingEvent());
-  //   final path = await stopRecord(record);
-  //   await Future.delayed(const Duration(seconds: 1));
-  //   final result = await ASRRequest(path);
-  //   final prompt = result.first as String;
-  //   textToImageBloc.add(TextToImageLoadEvent(prompt));
-  // } else {
-  //   startRecord(record);
-  // }
 }
